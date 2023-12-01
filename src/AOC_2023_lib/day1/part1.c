@@ -43,8 +43,9 @@ int day1_part1()
 
                long num = (first_char_num - 48) * 10 + (last_char_num - 48);
 
-               printf("num: %ld\n", num);
-               printf("line: %s\n", line);
+               // printf("num: %ld\n", num);
+               // printf("line: %s\n", line);
+
                num_sum += num;
 
                // clear buffer bit xor
@@ -56,6 +57,6 @@ int day1_part1()
         }
 
         fclose(fp);
-        printf("max value: %ld\n", num_sum);
+        printf("num sum: %ld\n", num_sum);
         return 0;
 }
