@@ -1,6 +1,11 @@
 set(CMAKE_CXX_STANDARD 23)
 
-set(SOURCES days.hpp day1/part1.c day1/part2.c)
+set(SOURCES days.hpp
+        day1/part1.c
+        day1/part2.c
+        day2/part2.c
+        day2/part1.c
+        day2/line_process.asm)
 add_library(AOC_2023_lib STATIC ${SOURCES})
 
 target_include_directories(AOC_2023_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
