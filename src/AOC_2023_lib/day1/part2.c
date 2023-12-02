@@ -12,7 +12,7 @@ typedef struct regex_num_patterns {
 
 void set_first_and_last_num(char* first, char* last, const char* line, const regex_num_patterns* patterns)
 {
-        int first_pos = 32767;
+        int first_pos = 2147483647;
         int last_pos = 0;
 
         for (int i = 0; line[i] != 0; i++)
@@ -37,7 +37,8 @@ void set_first_and_last_num(char* first, char* last, const char* line, const reg
 
         // Iterate through patterns
         // Iterate through patterns
-        for (int i = 0; i < 10; ++i) {
+        for (int i = 0; i < 10; ++i)
+        {
                 regex_t regex;
                 if (regcomp(&regex, patterns[i].pattern, 0) == 0)
                 {
@@ -52,7 +53,8 @@ void set_first_and_last_num(char* first, char* last, const char* line, const reg
                                 {
                                         int index = j + match.rm_so;
 
-                                        if (first_pos_reg == -1) {
+                                        if (first_pos_reg == -1)
+                                        {
                                                 first_pos_reg = index;
                                         }
 

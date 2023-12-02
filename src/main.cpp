@@ -1,4 +1,5 @@
-#include <iostream>
+// Collection of all the days for the Advent of Code 2023
+
 #include "AOC_2023_lib/days.hpp"
 int main()
 {
