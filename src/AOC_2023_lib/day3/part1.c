@@ -1,12 +1,19 @@
 // https://adventofcode.com/2023/day/3
 
 #include <stdio.h>
+#include <alloca.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_LINES 140
+#define MAX_LINE_LENGTH 142
+#define FILE_PATH "../src/AOC_2023_lib/day3/input"
 
 typedef unsigned char uint8_t;
 
-void process_line(char* buffer, char* line, const char* symbols);
+int process_line(const char* current_line, const char* prev_line_up,
+                 const char* next_line_down, const char* special_symbols);
 int is_special_symbol(char c, const char* special_symbols);
-uint8_t check_left_and_right_symbols(int char_pos, const char* line_to_check);
 uint8_t is_digit(char c);
 
 
@@ -19,38 +26,156 @@ int day3_part1()
                                   ':','<', '>','|', '[',
                                   ']', '{', '}', '\0'};
 
+        FILE *file;
+        const char *lines[MAX_LINES];
+        char buffer[MAX_LINE_LENGTH];
+        int line_count = 0;
 
-        FILE *fp;
-        fp = fopen("../src/AOC_2023_lib/day3/input", "r");
-
-        if (fp == NULL)
+        // Open the file for reading
+        file = fopen(FILE_PATH, "r");
+        if (file == NULL)
         {
-                (void) printf("Could not open file %s", "../src/AOC_2023_lib/day3/input");
+                fprintf(stderr, "Error opening file\n");
                 return 1;
         }
 
-        char buffer[256];
-        char prev_line[256];
-
-        // clear buffers
-        for (int i = 0; i < 256; i++)
+        // Read lines from the file
+        while (fgets(buffer, sizeof(buffer), file) != NULL)
         {
-                buffer[i] = '\0';
-                prev_line[i] = '\0';
+                // Remove newline character at the end
+                buffer[strcspn(buffer, "\n")] = '\0';
+
+                // Allocate memory for the line and copy the content
+                lines[line_count] = strdup(buffer);
+
+                if (lines[line_count] == NULL)
+                {
+                        fprintf(stderr, "Memory allocation error\n");
+                        return 1;
+                }
+
+                line_count++;
+
+                // Check if the maximum number of lines is reached
+                if (line_count >= MAX_LINES)
+                {
+                        fprintf(stderr, "Exceeded maximum number of lines\n");
+                        break;
+                }
         }
 
-        while (fgets(buffer, 256, fp) != NULL)
-        {
-                printf("previous line %s", prev_line);
-                printf("current line: %s", buffer);
+        // Close the file
+        fclose(file);
 
-                process_line(buffer, prev_line, special_symbols);
-                printf("%s", "                            \n");
+        // Print the stored lines for demonstration
+//        for (int i = 0; i < line_count; i++)
+//        {
+//                printf("Line %d: %s\n", i + 1, lines[i]);
+//        }
+
+        int t_sum = 0;
+
+        // line processing here
+        for (int i = 0; i < line_count; i++)
+        {
+                // if lines is the first line then provide NULL provide string full of .
+
+                char dots[MAX_LINE_LENGTH];
+                for (int j = 0; j < MAX_LINE_LENGTH-2; j++)
+                {
+                        dots[j] = '.';
+                }
+                dots[MAX_LINE_LENGTH-2] = '\0';
+
+                if (i == 0)
+                {
+                        t_sum += process_line(lines[i], dots, lines[i+1], special_symbols);
+                        continue;
+                }
+
+                if (i == line_count-1)
+                {
+                        t_sum += process_line(lines[i], lines[i-1], dots, special_symbols);
+                        continue;
+                }
+
+                t_sum += process_line(lines[i], lines[i-1], lines[i+1], special_symbols);
         }
 
-        (void) fclose(fp);
+        printf("total sum: %d\n", t_sum);
+
+        // Free allocated memory
+        for (int i = 0; i < line_count; i++)
+        {
+                free((void *) lines[i]);
+        }
+
+        return 0;
+
+}
 
 
+int check_for_special_symbols(int num_pos, const char* current_line,
+                              const char* prev_line_up, const char* next_line_down,
+                              const char* special_symbols)
+{
+        // check if the number is surrounded by special symbols
+        // if it is, then we return 1, else we return 0
+
+
+        // check current line -- is at left or at right
+
+        // only check left if num_pos is not 0
+        if (num_pos != 0)
+        {
+                if (is_special_symbol(current_line[num_pos-1], special_symbols))
+                {
+                        return 1;
+                }
+                // check if left diagonally
+                if (is_special_symbol(prev_line_up[num_pos-1], special_symbols))
+                {
+                        return 1;
+                }
+                // check if left diagonally
+                if (is_special_symbol(next_line_down[num_pos-1], special_symbols))
+                {
+                        return 1;
+                }
+        }
+
+        // only check right if num_pos is not at the end
+        if (num_pos != strlen(current_line)-1)
+        {
+                if (is_special_symbol(current_line[num_pos+1], special_symbols))
+                {
+                        return 1;
+                }
+
+                // check if right diagonally
+                if (is_special_symbol(prev_line_up[num_pos+1], special_symbols))
+                {
+                        return 1;
+                }
+
+                // check if right diagonally
+                if (is_special_symbol(next_line_down[num_pos+1], special_symbols))
+                {
+                        return 1;
+                }
+        }
+
+        // check prev line -- is up
+        if (is_special_symbol(prev_line_up[num_pos], special_symbols))
+        {
+                return 1;
+        }
+
+        // check the next line -- is down
+        if (is_special_symbol(next_line_down[num_pos], special_symbols))
+        {
+                return 1;
+        }
         return 0;
 }
 
@@ -79,80 +204,63 @@ uint8_t is_digit(char c)
         return (uint8_t) 0b00000000;
 }
 
-uint8_t check_left_and_right_symbols(int char_pos, const char* line_to_check)
+
+int process_line(const char* current_line, const char* prev_line_up,
+                 const char* next_line_down, const char* special_symbols)
 {
-        // returns the number of digits found
-        // byte encoding
-        // 0b00000000 = no digits found
-        // 0b00000001 = digit found on the left
-        // 0b00000010 = digit found on the right
-        // 0b00000011 = digit found on the left and right
+        // loop through each line and look for number characters
+        // if we found a digit, then we move the pointer until there are no more digits
 
-        // 0b00000100 = digit found on the left on the previous line
-        // 0b00001000 = digit found on the right on the previous line
-        // 0b00001100 = digit found on the left and right on the previous line
+        int lines_valid_num_sum = 0;
 
-
-        // check if found special symbol is at the start of the line
-        if (char_pos == 0)
+        char temp[MAX_LINE_LENGTH*2];
+        // clear temp
+        for(int i = 0; i < MAX_LINE_LENGTH*2; i++)
         {
-                // only check right symbol
-                // is a symbol to the right a number?
-                return is_digit(line_to_check[char_pos + 1]) << 1;
+                temp[i] = '\0';
         }
 
-        // check if found special symbol is at the end of the line
-        if (line_to_check[char_pos + 1] == '\0')
+        int temp_pos = 0;
+        int res_total_val = 0;
+
+        for(int i = 0; i < MAX_LINE_LENGTH; i++)
         {
-                // only check left symbol
-                // is a symbol to the left a number?
-                return is_digit(line_to_check[char_pos - 1]);
-        }
-
-        // check both left and right symbols
-        // is a symbol to the left a number?
-        // is a symbol to the right a number?
-        return (is_digit(line_to_check[char_pos - 1])) | is_digit(line_to_check[char_pos + 1]) << 1;
-}
-
-
-void process_line(char* buffer, char* prev_line, const char* special_symbols)
-{
-
-        for (int char_pos = 0; buffer[char_pos] != '\0'; char_pos++) // for each character in buffer
-        {
-                char character_in_buffer = buffer[char_pos]; // alias
-
-                if (is_special_symbol(character_in_buffer, special_symbols))
+                if (is_digit(current_line[i]))
                 {
-                        // current line check
-                        (void) printf("Found special symbol: %c\n", character_in_buffer);
-                        int special_character_pos = char_pos;
+                       temp[temp_pos] = current_line[i];
 
-                        uint8_t digits_found = check_left_and_right_symbols(special_character_pos, buffer);
-                        (void) printf("Digits found on current line: %d\n", digits_found);
-
-                        // previous line check (ABOVE)
-                        if (prev_line[0] != '\0')
-                        {
-                                digits_found |= check_left_and_right_symbols(
-                                        special_character_pos, prev_line) << 2;
-
-                                //(void) printf("Digits found on previous line: %d\n", (digits_found % digits_found >> 1) + 1);
-                                (void) printf("Digits found on previous line: %d\n", digits_found & 0b00001100);
-                        }
-
+                       // need to check around the number if there are special symbols
+                       int result = check_for_special_symbols(i, current_line,
+                                                              prev_line_up, next_line_down,
+                                                              special_symbols);
+                       res_total_val += result;
+                       //printf("result: %d\n", result);
+                       temp_pos++;
+                       continue;
                 }
+
+                // convert the contents of temp to an integer
+                if(res_total_val > 0)
+                {
+                        int res = atoi(temp);
+                        printf("res: %d\n", res);
+                        lines_valid_num_sum += res;
+                        res_total_val = 0;
+                }
+
+                // clear temp and temp_pos
+                for(int j = 0; j < MAX_LINE_LENGTH*2; j++)
+                {
+                        temp[j] = '\0';
+                }
+                temp_pos = 0;
+
         }
 
+        printf("prev_line_up:   %s\n", prev_line_up);
+        printf("current line:   %s\n", current_line);
+        printf("next_line_down: %s\n", next_line_down);
+        printf("-------------------\n");
 
-
-
-
-        // copy buffer to prev_line and clear buffer
-        for (int i = 0; buffer[i] != '\0'; i++)
-        {
-                prev_line[i] = buffer[i];
-                buffer[i] = '\0';
-        }
+        return lines_valid_num_sum;
 }
