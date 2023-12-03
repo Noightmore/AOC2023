@@ -7,6 +7,7 @@ int main()
         //return day1_part2();
         //return day2_part1();
         //return day2_part2();
-        return day3_part1();
+        //return day3_part1();
+        return day3_part2();
         return 0;
 }

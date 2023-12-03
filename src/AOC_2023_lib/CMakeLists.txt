@@ -6,7 +6,8 @@ set(SOURCES days.hpp
         day2/part2.c
         day2/part1.c
         day2/line_process.asm
-        day3/part1.c)
+        day3/part1.c
+        day3/part2.c)
 add_library(AOC_2023_lib STATIC ${SOURCES})
 
 target_include_directories(AOC_2023_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

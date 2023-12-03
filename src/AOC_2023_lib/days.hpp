@@ -6,5 +6,6 @@ extern "C" int day1_part2();
 extern "C" int day2_part1();
 extern "C" int day2_part2();
 extern "C" int day3_part1();
+extern "C" int day3_part2();
 
 #endif //AOC2023_DAYS_HPP
